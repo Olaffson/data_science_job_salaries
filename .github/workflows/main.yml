@@ -1,12 +1,16 @@
 name: main
 
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       branch:
+#         description: 'Branch to run the workflow'
+#         required: true
+#         default: 'dev'
+
 on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to run the workflow'
-        required: true
-        default: 'dev'
+  push:
+    branches: [dev]
 
 jobs:
   run-notebooks:
