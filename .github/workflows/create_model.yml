@@ -1,0 +1,54 @@
+name: Run Notebooks Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to run the workflow'
+        required: true
+        default: 'main'
+
+jobs:
+  run-notebooks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install jupyter nbconvert pandas scikit-learn xgboost mlflow
+          pip install -r requirements.txt  # If you have a requirements.txt
+
+      - name: Run analysis notebook
+        run: |
+          source venv/bin/activate
+          jupyter nbconvert --to notebook --execute analyse/analyse.ipynb
+
+      - name: Start MLflow server
+        run: |
+          source venv/bin/activate
+          nohup mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0 --port 5000 &
+
+      - name: Run train model notebook
+        run: |
+          source venv/bin/activate
+          jupyter nbconvert --to notebook --execute model/train_model.ipynb
+
+      - name: Run best model notebook
+        run: |
+          source venv/bin/activate
+          jupyter nbconvert --to notebook --execute model/best_model.ipynb
+
+      - name: Stop MLflow server
+        run: |
+          pkill -f "mlflow server"
