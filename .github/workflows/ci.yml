@@ -86,7 +86,7 @@ jobs:
         TEST_SECRET_KEY: ${{ secrets.SECRET_KEY }}  # Utiliser le même secret pour les tests
       run: |
         . venv/bin/activate
-        pytest
+        pytest api/
       continue-on-error: true
 
 
@@ -97,7 +97,7 @@ jobs:
         TEST_SECRET_KEY: ${{ secrets.SECRET_KEY }}  # Utiliser le même secret pour les tests
       run: |
         . venv/bin/activate
-        pytest --cov=api tests/
+        pytest --cov=api api/
       continue-on-error: true
 
     - name: Run pycodestyle
