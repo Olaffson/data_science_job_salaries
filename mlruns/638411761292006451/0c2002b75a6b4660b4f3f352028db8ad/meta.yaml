@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/638411761292006451/0c2002b75a6b4660b4f3f352028db8ad/artifacts
+end_time: 1716385688678
+entry_point_name: ''
+experiment_id: '638411761292006451'
+lifecycle_stage: active
+run_id: 0c2002b75a6b4660b4f3f352028db8ad
+run_name: luminous-seal-619
+run_uuid: 0c2002b75a6b4660b4f3f352028db8ad
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1716385667175
+status: 3
+tags: []
+user_id: utilisateur

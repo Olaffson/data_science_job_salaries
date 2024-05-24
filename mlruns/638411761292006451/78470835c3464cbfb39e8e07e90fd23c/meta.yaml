@@ -1,0 +1,16 @@
+artifact_uri: mlflow-artifacts:/638411761292006451/78470835c3464cbfb39e8e07e90fd23c/artifacts
+deleted_time: 1716384316153
+end_time: 1716383025188
+entry_point_name: ''
+experiment_id: '638411761292006451'
+lifecycle_stage: deleted
+run_id: 78470835c3464cbfb39e8e07e90fd23c
+run_name: magnificent-koi-940
+run_uuid: 78470835c3464cbfb39e8e07e90fd23c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1716383004681
+status: 4
+tags: []
+user_id: utilisateur

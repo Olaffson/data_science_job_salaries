@@ -1,0 +1,6 @@
+artifact_location: mlflow-artifacts:/198487169121536867
+creation_time: 1716382295318
+experiment_id: '198487169121536867'
+last_update_time: 1716382295318
+lifecycle_stage: active
+name: xgboost_salary_prediction

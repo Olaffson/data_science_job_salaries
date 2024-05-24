@@ -1,0 +1,16 @@
+artifact_uri: mlflow-artifacts:/638411761292006451/1362639f58b34d74b635736c02f3525c/artifacts
+deleted_time: 1716384316161
+end_time: 1716382114692
+entry_point_name: ''
+experiment_id: '638411761292006451'
+lifecycle_stage: deleted
+run_id: 1362639f58b34d74b635736c02f3525c
+run_name: fun-ant-793
+run_uuid: 1362639f58b34d74b635736c02f3525c
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1716382096102
+status: 4
+tags: []
+user_id: utilisateur

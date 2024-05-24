@@ -1,8 +1,9 @@
 artifact_uri: mlflow-artifacts:/638411761292006451/71b5f8cc4d1b4eba9a95fcb24d67ba8e/artifacts
+deleted_time: 1716384316164
 end_time: 1716285557139
 entry_point_name: ''
 experiment_id: '638411761292006451'
-lifecycle_stage: active
+lifecycle_stage: deleted
 run_id: 71b5f8cc4d1b4eba9a95fcb24d67ba8e
 run_name: powerful-bird-66
 run_uuid: 71b5f8cc4d1b4eba9a95fcb24d67ba8e

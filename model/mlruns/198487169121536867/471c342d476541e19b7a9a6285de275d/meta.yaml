@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/198487169121536867/471c342d476541e19b7a9a6285de275d/artifacts
+end_time: 1716382315343
+entry_point_name: ''
+experiment_id: '198487169121536867'
+lifecycle_stage: active
+run_id: 471c342d476541e19b7a9a6285de275d
+run_name: casual-hen-59
+run_uuid: 471c342d476541e19b7a9a6285de275d
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1716382295388
+status: 4
+tags: []
+user_id: utilisateur

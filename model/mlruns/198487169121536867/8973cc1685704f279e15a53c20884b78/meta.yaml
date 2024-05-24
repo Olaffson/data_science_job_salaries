@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/198487169121536867/8973cc1685704f279e15a53c20884b78/artifacts
+end_time: 1716382592070
+entry_point_name: ''
+experiment_id: '198487169121536867'
+lifecycle_stage: active
+run_id: 8973cc1685704f279e15a53c20884b78
+run_name: puzzled-doe-990
+run_uuid: 8973cc1685704f279e15a53c20884b78
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1716382574198
+status: 4
+tags: []
+user_id: utilisateur

@@ -1,0 +1,16 @@
+artifact_uri: mlflow-artifacts:/638411761292006451/977d9383792b404c990f6b1dbaed166a/artifacts
+deleted_time: 1716385728891
+end_time: 1716384225053
+entry_point_name: ''
+experiment_id: '638411761292006451'
+lifecycle_stage: deleted
+run_id: 977d9383792b404c990f6b1dbaed166a
+run_name: classy-carp-649
+run_uuid: 977d9383792b404c990f6b1dbaed166a
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1716384202467
+status: 3
+tags: []
+user_id: utilisateur
