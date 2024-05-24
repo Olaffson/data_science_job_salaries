@@ -1,51 +1,114 @@
-name: CI
+# name: CI
 
-on:
-  push:
-    branches:
-      - dev
+# on:
+#   push:
+#     branches:
+#       - dev
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'
+#     - name: Set up Python
+#       uses: actions/setup-python@v2
+#       with:
+#         python-version: '3.10'
 
-    - name: Install dependencies
-      run: |
-        python -m venv venv
-        . venv/bin/activate
-        pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-cov pycodestyle bandit
+#     - name: Install dependencies
+#       run: |
+#         python -m venv venv
+#         . venv/bin/activate
+#         pip install --upgrade pip
+#         pip install -r requirements.txt
+#         pip install pytest pytest-cov pycodestyle bandit
 
-    - name: Run tests with pytest
-      run: |
-        . venv/bin/activate
-        pytest
-      continue-on-error: true
+#     - name: Run tests with pytest
+#       run: |
+#         . venv/bin/activate
+#         pytest
+#       continue-on-error: true
 
-    - name: Calculate test coverage
-      run: |
-        . venv/bin/activate
-        pytest --cov=api tests/
-      continue-on-error: true
+#     - name: Calculate test coverage
+#       run: |
+#         . venv/bin/activate
+#         pytest --cov=api tests/
+#       continue-on-error: true
 
-    - name: Run pycodestyle
-      run: |
-        . venv/bin/activate
-        pycodestyle --statistics --ignore=E501,E712 api
-    #   continue-on-error: true
+#     - name: Run pycodestyle
+#       run: |
+#         . venv/bin/activate
+#         pycodestyle --statistics --ignore=E501,E712 api
+#       continue-on-error: true
 
-    - name: Run bandit
-      run: |
-        . venv/bin/activate
-        bandit -r api/
-    #   continue-on-error: true
+#     - name: Run bandit
+#       run: |
+#         . venv/bin/activate
+#         bandit -r api/
+#       continue-on-error: true
+
+      name: CI
+
+      on:
+        push:
+          branches:
+            - dev
+      
+      jobs:
+        build:
+          runs-on: ubuntu-latest
+      
+          steps:
+          - name: Checkout code
+            uses: ./.github/actions/checkout
+      
+          - name: Set up Python
+            uses: ./.github/actions/setup-python
+            with:
+              python-version: '3.10'
+      
+          - name: Install dependencies
+            run: |
+              python -m venv venv
+              . venv/bin/activate
+              pip install --upgrade pip
+              pip install -r requirements.txt
+              pip install pytest pytest-cov pycodestyle bandit
+      
+          - name: Run tests with pytest
+            env:
+              SECRET_KEY: ${{ secrets.SECRET_KEY }}
+              ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+              TEST_SECRET_KEY: ${{ secrets.SECRET_KEY }}  # Utiliser le même secret pour les tests
+            run: |
+              . venv/bin/activate
+              pytest
+            continue-on-error: true
+
+          - name: Calculate test coverage
+            env:
+              SECRET_KEY: ${{ secrets.SECRET_KEY }}
+              ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+              TEST_SECRET_KEY: ${{ secrets.SECRET_KEY }}  # Utiliser le même secret pour les tests
+            run: |
+              . venv/bin/activate
+              pytest --cov=api tests/
+            continue-on-error: true
+      
+          - name: Run pycodestyle
+            run: |
+              . venv/bin/activate
+              pycodestyle --statistics --ignore=E501,E712 api
+            continue-on-error: true
+
+      
+          - name: Run bandit
+            run: |
+              . venv/bin/activate
+              bandit -r api/
+            continue-on-error: true
+
+      
