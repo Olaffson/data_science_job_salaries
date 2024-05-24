@@ -13,9 +13,11 @@ ALGORITHM = "HS256"
 
 client = TestClient(app)
 
+
 @pytest.fixture
 def token():
     return generate_token("admin")
+
 
 @pytest.mark.asyncio
 async def test_login():
@@ -24,11 +26,13 @@ async def test_login():
     pytest.assume(response.status_code == 200)
     pytest.assume("access_token" in response.json())
 
+
 @pytest.mark.asyncio
 async def test_invalid_login():
     async with AsyncClient(app=app, base_url="http://test") as ac:
         response = await ac.post("/token", data={"username": "admin", "password": "wrongpassword"})
     pytest.assume(response.status_code == 401)
+
 
 @pytest.mark.asyncio
 async def test_predict(token):
@@ -46,6 +50,7 @@ async def test_predict(token):
         response = await ac.post("/predict", json=payload, headers=headers)
     pytest.assume(response.status_code == 200)
     pytest.assume("prediction" in response.json())
+
 
 @pytest.mark.asyncio
 async def test_predict_without_token():

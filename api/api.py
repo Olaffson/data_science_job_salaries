@@ -25,6 +25,7 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+
 class ModelInput(BaseModel):
     experience_level: str
     employment_type: str
@@ -34,12 +35,16 @@ class ModelInput(BaseModel):
     company_location: str
     company_size: str
 
+
 def generate_token(username: str) -> str:
     to_encode = {"sub": username}
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def has_access(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
+
+async def has_access(
+    credentials: HTTPAuthorizationCredentials = Depends(
+        HTTPBearer())):
     token = credentials.credentials
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -56,6 +61,7 @@ async def has_access(credentials: HTTPAuthorizationCredentials = Depends(HTTPBea
     else:
         raise credentials_exception
 
+
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     username = form_data.username
@@ -69,6 +75,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             detail="Nom d'utilisateur ou mot de passe incorrect",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
 
 @app.post("/predict", dependencies=[Depends(has_access)])
 def predict(input: ModelInput):
@@ -89,7 +96,8 @@ def predict(input: ModelInput):
     except Exception as e:
         logger.error(f"Erreur lors de la prédiction : {e}")
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+
 if __name__ == "__main__":
     import uvicorn
     host = os.environ.get("HOST", "127.0.0.1")
