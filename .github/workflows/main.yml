@@ -10,7 +10,8 @@ name: main
 
 on:
   push:
-    branches: [dev]
+    branches:
+      - '*'
 
 jobs:
   run-notebooks:
