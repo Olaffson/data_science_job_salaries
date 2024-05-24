@@ -104,7 +104,7 @@ jobs:
       run: |
         . venv/bin/activate
         pycodestyle --statistics --ignore=E501,E712 api
-      continue-on-error: true
+      # continue-on-error: true
 
 
     - name: Run bandit
