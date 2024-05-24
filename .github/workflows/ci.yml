@@ -55,7 +55,8 @@ name: CI
 on:
   push:
     branches:
-      - '*'
+      - '*'  # S'exécute sur n'importe quelle branche
+  workflow_dispatch:  # Permet de déclencher manuellement le workflow
 
 jobs:
   build:
@@ -63,10 +64,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: ./.github/actions/checkout
+      uses: actions/checkout@v2
 
     - name: Set up Python
-      uses: ./.github/actions/setup-python
+      uses: actions/setup-python@v2
       with:
         python-version: '3.10'
 
@@ -87,6 +88,7 @@ jobs:
         . venv/bin/activate
         pytest
       continue-on-error: true
+
 
     - name: Calculate test coverage
       env:
@@ -110,3 +112,4 @@ jobs:
         . venv/bin/activate
         bandit -r api/
       continue-on-error: true
+
