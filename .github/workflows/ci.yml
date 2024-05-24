@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - dev
-  workflow_dispatch:  # Permet de déclencher manuellement le workflow
 
 jobs:
   build:
@@ -31,22 +30,19 @@ jobs:
       run: |
         . venv/bin/activate
         pytest
-      continue-on-error: true
 
     - name: Calculate test coverage
       run: |
         . venv/bin/activate
-        pytest --cov=api test/
+        pytest --cov=api tests/
       continue-on-error: true
 
     - name: Run pycodestyle
       run: |
         . venv/bin/activate
         pycodestyle --statistics --ignore=E501,E712 api
-      continue-on-error: true
 
     - name: Run bandit
       run: |
         . venv/bin/activate
         bandit -r api/
-      continue-on-error: true
