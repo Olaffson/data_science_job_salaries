@@ -23,8 +23,9 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
-          pip install jupyter nbconvert pandas scikit-learn xgboost mlflow
-          pip install -r requirements.txt  # If you have a requirements.txt
+          # Dépendances des notebooks uniquement, avec les versions du modèle servi par l'API.
+          # (requirements.txt, figé pour l'API, rétrograde typing-extensions et casse jupyter_client)
+          pip install -r model/requirements.txt
 
       - name: Run analysis notebook
         run: |
