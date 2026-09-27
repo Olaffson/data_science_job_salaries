@@ -4,7 +4,7 @@
 server="projet-ok-prod-sqlserver.database.windows.net"
 database="projet-ok-prod-database"
 username="adminuser"
-password="yourStrongPassword123!"
+password="${DB_ADMIN_PASSWORD:?La variable DB_ADMIN_PASSWORD doit être définie}"
 
 # Path to your CSV file
 csvFile="/home/utilisateur/Documents/Projets/data_science_job_salaries/data/silver.csv"

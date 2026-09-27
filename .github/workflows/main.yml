@@ -3,7 +3,7 @@ name: MODEL
 on:
   push:
     branches:
-      - '*'
+      - '**'
 
 jobs:
   run-notebooks:
@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -23,8 +23,9 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
-          pip install jupyter nbconvert pandas scikit-learn xgboost mlflow
-          pip install -r requirements.txt  # If you have a requirements.txt
+          # Dépendances des notebooks uniquement, avec les versions du modèle servi par l'API.
+          # (requirements.txt, figé pour l'API, rétrograde typing-extensions et casse jupyter_client)
+          pip install -r model/requirements.txt
 
       - name: Run analysis notebook
         run: |
@@ -34,7 +35,14 @@ jobs:
       - name: Start MLflow server
         run: |
           source venv/bin/activate
-          nohup mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0 --port 5000 &
+          nohup mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 127.0.0.1 --port 5000 > mlflow.log 2>&1 &
+          # Attendre que le serveur réponde avant d'exécuter les notebooks
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:5000/health && exit 0
+            sleep 2
+          done
+          cat mlflow.log
+          exit 1
 
       - name: Run train model notebook
         run: |

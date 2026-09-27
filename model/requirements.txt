@@ -1,0 +1,10 @@
+# Dépendances des notebooks (analyse, entraînement, sélection du modèle)
+# Versions alignées sur celles du modèle servi par l'API (voir api/requirements.txt)
+jupyter
+nbconvert
+numpy==1.26.4
+pandas==2.2.0
+scikit-learn==1.4.1.post1
+xgboost==2.0.3
+mlflow==2.13.0
+SQLAlchemy==2.0.27  # mlflow 2.13 est incompatible avec SQLAlchemy 2.1

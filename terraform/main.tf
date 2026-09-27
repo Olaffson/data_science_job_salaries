@@ -38,7 +38,7 @@
 #   location                     = azurerm_resource_group.projet-rg.location
 #   version                      = "12.0"
 #   administrator_login          = "adminlogin"
-#   administrator_login_password = "AdminPassword123!"
+#   administrator_login_password = var.db_admin_password
 # }
 
 # # Création d'une base de données sur le serveur SQL
@@ -66,6 +66,17 @@ provider "azurerm" {
   features {}
 }
 
+# Mot de passe administrateur : à fournir via TF_VAR_db_admin_password (jamais en clair dans le code)
+variable "db_admin_password" {
+  type      = string
+  sensitive = true
+}
+
+# Adresse IP autorisée à se connecter à la base (ex : TF_VAR_client_ip=$(curl -s ifconfig.me))
+variable "client_ip" {
+  type = string
+}
+
 # Création d'un groupe de ressources
 resource "azurerm_resource_group" "projet-rg" {
   name     = "projet-ok-prod-rg"
@@ -87,10 +98,10 @@ resource "azurerm_postgresql_server" "projet-postgres" {
   geo_redundant_backup_enabled = false
 
   administrator_login = "adminuser"
-  administrator_login_password = "yourStrongPassword123!"
+  administrator_login_password = var.db_admin_password
 
   ssl_enforcement_enabled = true
-  public_network_access_enabled = false  # Peut être activé si nécessaire
+  public_network_access_enabled = true  # Accès limité à client_ip par la règle de pare-feu ci-dessous
 }
 
 # Création d'une base de données PostgreSQL
@@ -107,6 +118,6 @@ resource "azurerm_postgresql_firewall_rule" "allow_client_ip" {
   name                = "AllowClientIP"
   resource_group_name = azurerm_resource_group.projet-rg.name
   server_name         = azurerm_postgresql_server.projet-postgres.name
-  start_ip_address    = "0.0.0.0"
-  end_ip_address      = "255.255.255.255"
+  start_ip_address    = var.client_ip
+  end_ip_address      = var.client_ip
 }
