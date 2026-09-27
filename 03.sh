@@ -1,12 +1,9 @@
 #!/bin/bash
 
-# ce fichier permet de supprimer les ressources azure
+# Ce script supprime les ressources Azure du projet
+# Variables requises : TF_VAR_db_admin_password et TF_VAR_client_ip
 
-# Fonction pour la destruction Terraform
-terraform_destroy() {
-    cd terraform
-    terraform destroy --auto-approve
-}
+set -e
+cd "$(dirname "$0")/terraform"
 
-# Appel des fonctions dans l'ordre souhaité
-terraform_destroy
+terraform destroy --auto-approve

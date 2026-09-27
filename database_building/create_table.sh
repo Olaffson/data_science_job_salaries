@@ -1,13 +1,7 @@
 #!/bin/bash
 
-# Azure SQL Server credentials
-server="projet-ok-prod-sqlserver.database.windows.net"
-database="projet-ok-prod-database"
-username="adminuser"
-password="${DB_ADMIN_PASSWORD:?La variable DB_ADMIN_PASSWORD doit être définie}"
+# Crée la table jobs sur le serveur PostgreSQL Azure
+cd "$(dirname "$0")/.." || exit 1
+source database_building/pg_env.sh
 
-# Path to your SQL script file
-sqlScript="/home/utilisateur/Documents/Projets/data_science_job_salaries/database_building/create_table.sql"
-
-# Connect to Azure SQL Server and execute the SQL script
-sqlcmd -S $server -d $database -U $username -P $password -i "$sqlScript"
+psql -v ON_ERROR_STOP=1 -f database_building/create_table.sql

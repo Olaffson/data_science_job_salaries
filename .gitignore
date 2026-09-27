@@ -2,6 +2,12 @@
 model/*.pkl
 data/silver.csv
 
+# MLflow (suivi local des expériences) et sorties de nbconvert
+mlruns/
+mlartifacts/
+mlflow.db
+*.nbconvert.ipynb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

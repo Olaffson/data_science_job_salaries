@@ -1,14 +1,7 @@
 #!/bin/bash
 
-# Azure SQL Server credentials
-server="projet-ok-prod-sqlserver.database.windows.net"
-database="projet-ok-prod-database"
-username="adminuser"
-password="${DB_ADMIN_PASSWORD:?La variable DB_ADMIN_PASSWORD doit être définie}"
+# Importe data/silver.csv dans la table jobs du serveur PostgreSQL Azure
+cd "$(dirname "$0")/.." || exit 1
+source database_building/pg_env.sh
 
-# Path to your CSV file
-csvFile="/home/utilisateur/Documents/Projets/data_science_job_salaries/data/silver.csv"
-
-# Import data
-bcp salaries in $csvFile -S $server -d $database -U $username -P $password -q -c -t ","
-
+psql -v ON_ERROR_STOP=1 -c "\copy jobs (experience_level, employment_type, job_title, employee_residence, remote_ratio, company_location, company_size, salary_in_usd) FROM 'data/silver.csv' WITH (FORMAT csv, HEADER true)"

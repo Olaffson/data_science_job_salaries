@@ -1,122 +1,31 @@
-# import streamlit as st
-# import pandas as pd
-# import sqlite3
-# import requests
-
-# # Fonction pour générer un token JWT
-
-
-# def authenticate(username, password):
-#     url = "http://localhost:8000/token"
-#     response = requests.post(
-#         url,
-#         data={
-#             "username": username,
-#             "password": password})
-#     if response.status_code == 200:
-#         return response.json()["access_token"]
-#     else:
-#         st.error("Nom d'utilisateur ou mot de passe incorrect")
-#         return None
-
-# # Page d'authentification
-
-
-# def login():
-#     st.title("Page de connexion")
-#     username = st.text_input("Nom d'utilisateur")
-#     password = st.text_input("Mot de passe", type="password")
-#     if st.button("Se connecter"):
-#         token = authenticate(username, password)
-#         if token:
-#             st.session_state["token"] = token
-#             st.success("Connexion réussie")
-#             st.experimental_rerun()
-
-# # Page principale
-
-
-# def main():
-#     # Connexion à la base de données SQLite
-#     conn = sqlite3.connect("./database_building/sqlite/silver.db")
-
-#     # Lire les données de la table 'jobs' dans un DataFrame
-#     df = pd.read_sql_query("SELECT * FROM jobs", conn)
-
-#     # Sélectionner une ligne aléatoire sans la colonne 'salary_in_usd'
-#     random_row = df.drop(columns=['salary_in_usd']).sample(n=1)
-
-#     # Ajouter un titre à la page Streamlit
-#     st.title("Affichage d'une ligne aléatoire de la base de données")
-
-#     # Afficher chaque donnée indépendamment
-#     st.write("Ligne aléatoire de la base de données :")
-#     for column, value in random_row.iloc[0].items():
-#         st.write(f"**{column}**: {value}")
-
-#     # Ajouter un bouton 'Estimation'
-#     if st.button('Estimation'):
-#         # Préparer les données pour l'API
-#         input_data = random_row.iloc[0].to_dict()
-
-#         # Convertir les valeurs des colonnes au type approprié
-#         input_data['remote_ratio'] = str(
-#             input_data['remote_ratio'])  # Convertir remote_ratio en float
-
-#         # Imprimer les données d'entrée pour le débogage
-#         # st.write("Données envoyées à l'API :", input_data)
-
-#         # Appeler l'API pour obtenir la prédiction
-#         token = st.session_state.get("token")
-#         if token:
-#             headers = {"Authorization": f"Bearer {token}"}
-#             response = requests.post(
-#                 "http://localhost:8000/predict",
-#                 json=input_data,
-#                 headers=headers)
-
-#             try:
-#                 response.raise_for_status()
-#                 result = response.json()
-#                 # Formater la prédiction
-#                 prediction_value = result['prediction']
-#                 prediction_formatted = f"{round(prediction_value / 1000)} K usd"
-#                 st.write(
-#                     f"Le salaire annuel est estimé à {prediction_formatted}")
-#             except requests.exceptions.HTTPError as http_err:
-#                 st.error(f"Erreur HTTP : {http_err}")
-#                 st.error(response.text)
-#             except Exception as err:
-#                 st.error(f"Autre erreur : {err}")
-#         else:
-#             st.error("Vous devez vous connecter pour faire une estimation")
-
-#     # Fermer la connexion
-#     conn.close()
-
-
-# # Application principale
-# if "token" not in st.session_state:
-#     login()
-# else:
-#     main()
-
-##################################################################################################################
-    
-import streamlit as st
-import pandas as pd
+import os
 import sqlite3
-import requests
+from contextlib import closing
+from pathlib import Path
 
-# Fonction pour générer un token JWT
+import pandas as pd
+import requests
+import streamlit as st
+
+# URL de l'API FastAPI (modifiable via la variable d'environnement API_URL)
+API_URL = os.environ.get("API_URL", "http://localhost:8000")
+
+# Base SQLite créée par database_building/sqlite/bdd.py
+DB_PATH = Path(__file__).resolve().parents[1] / "database_building" / "sqlite" / "silver.db"
+
+
+# Authentification auprès de l'API pour obtenir un jeton JWT
 def authenticate(username, password):
-    url = "http://localhost:8000/token"
-    response = requests.post(url, data={"username": username, "password": password})
+    try:
+        response = requests.post(f"{API_URL}/token", data={"username": username, "password": password}, timeout=10)
+    except requests.exceptions.RequestException as err:
+        st.error(f"API injoignable ({API_URL}) : {err}")
+        return None
     if response.status_code == 200:
         return response.json()["access_token"]
-    else:
-        st.error("Nom d'utilisateur ou mot de passe incorrect")
-        return None
+    st.error("Nom d'utilisateur ou mot de passe incorrect")
+    return None
+
 
 # Page d'authentification
 def login():
@@ -128,63 +37,57 @@ def login():
         if token:
             st.session_state["token"] = token
             st.session_state["authenticated"] = True
-            st.experimental_rerun()
+            st.rerun()
+
 
 # Page principale
 def main():
     st.title("Estimation de salaire")
-    
-    # Connexion à la base de données SQLite
-    conn = sqlite3.connect("./database_building/sqlite/silver.db")
+
+    if not DB_PATH.exists():
+        st.error(f"Base de données introuvable : {DB_PATH}. Lancer d'abord ./01.sh")
+        return
 
     # Lire les données de la table 'jobs' dans un DataFrame
-    df = pd.read_sql_query("SELECT * FROM jobs", conn)
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        df = pd.read_sql_query("SELECT * FROM jobs", conn)
 
-    # Sélectionner une ligne aléatoire sans la colonne 'salary_in_usd'
-    random_row = df.drop(columns=['salary_in_usd']).sample(n=1)
+    # Conserver la même ligne aléatoire entre deux interactions (sinon elle change au clic sur 'Estimation')
+    if st.button("Nouvelle ligne") or "row" not in st.session_state:
+        st.session_state["row"] = df.sample(n=1).iloc[0]
+    row = st.session_state["row"]
 
-    # Afficher chaque donnée indépendamment
+    # Afficher chaque donnée (sans la colonne 'salary_in_usd', qui est la valeur à estimer)
     st.write("Ligne aléatoire de la base de données :")
-    for column, value in random_row.iloc[0].items():
+    input_data = row.drop(labels=["salary_in_usd"]).to_dict()
+    for column, value in input_data.items():
         st.write(f"**{column}**: {value}")
 
-    # Ajouter un bouton 'Estimation'
-    if st.button('Estimation'):
-        # Préparer les données pour l'API
-        input_data = random_row.iloc[0].to_dict()
+    if st.button("Estimation"):
+        # L'API attend remote_ratio sous forme de chaîne de caractères
+        input_data["remote_ratio"] = str(input_data["remote_ratio"])
 
-        # Convertir les valeurs des colonnes au type approprié
-        input_data['remote_ratio'] = str(input_data['remote_ratio'])  # Convertir remote_ratio en float
+        headers = {"Authorization": f"Bearer {st.session_state['token']}"}
+        try:
+            response = requests.post(f"{API_URL}/predict", json=input_data, headers=headers, timeout=10)
+            if response.status_code == 401:
+                # Jeton expiré : revenir à la page de connexion
+                st.session_state["authenticated"] = False
+                st.warning("Session expirée, veuillez vous reconnecter")
+                return
+            response.raise_for_status()
+            prediction_value = response.json()["prediction"]
+            st.write(f"Le salaire annuel est estimé à {round(prediction_value / 1000)} K USD")
+            st.write(f"Salaire réel : {round(row['salary_in_usd'] / 1000)} K USD")
+        except requests.exceptions.HTTPError as http_err:
+            st.error(f"Erreur HTTP : {http_err}")
+            st.error(response.text)
+        except requests.exceptions.RequestException as err:
+            st.error(f"API injoignable ({API_URL}) : {err}")
 
-        # Imprimer les données d'entrée pour le débogage
-        # st.write("Données envoyées à l'API :", input_data)
-
-        # Appeler l'API pour obtenir la prédiction
-        token = st.session_state.get("token")
-        if token:
-            headers = {"Authorization": f"Bearer {token}"}
-            response = requests.post("http://localhost:8000/predict", json=input_data, headers=headers)
-
-            try:
-                response.raise_for_status()
-                result = response.json()
-                # Formater la prédiction
-                prediction_value = result['prediction']
-                prediction_formatted = f"{round(prediction_value / 1000)} K"
-                st.write(f"Le salaire annuel est estimé à {prediction_formatted}")
-            except requests.exceptions.HTTPError as http_err:
-                st.error(f"Erreur HTTP : {http_err}")
-                st.error(response.text)
-            except Exception as err:
-                st.error(f"Autre erreur : {err}")
-        else:
-            st.error("Vous devez vous connecter pour faire une estimation")
-
-    # Fermer la connexion
-    conn.close()
 
 # Application principale
-if "authenticated" not in st.session_state or not st.session_state["authenticated"]:
+if not st.session_state.get("authenticated"):
     login()
 else:
     main()
