@@ -4,7 +4,7 @@
 server="projet-ok-prod-sqlserver.database.windows.net"
 database="projet-ok-prod-database"
 username="adminuser"
-password="yourStrongPassword123!"
+password="${DB_ADMIN_PASSWORD:?La variable DB_ADMIN_PASSWORD doit être définie}"
 
 # Path to your SQL script file
 sqlScript="/home/utilisateur/Documents/Projets/data_science_job_salaries/database_building/create_table.sql"
