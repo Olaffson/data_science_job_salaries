@@ -1,14 +1,16 @@
-import pandas as pd
 import sqlite3
+from contextlib import closing
+from pathlib import Path
 
-# Lire le fichier CSV
-df = pd.read_csv("data/silver.csv")
+import pandas as pd
 
-# Créer une connexion à la base de données SQLite
-conn = sqlite3.connect("database_building/sqlite/silver.db")
+ROOT = Path(__file__).resolve().parents[2]
 
-# Insérer les données dans une table appelée 'jobs'
-df.to_sql("jobs", conn, if_exists="replace", index=False)
+# Lire le fichier CSV nettoyé (produit par analyse/analyse.ipynb)
+df = pd.read_csv(ROOT / "data" / "silver.csv")
 
-# # Fermer la connexion
-# conn.close()
+# Insérer les données dans la table 'jobs' de la base SQLite utilisée par l'application
+with closing(sqlite3.connect(ROOT / "database_building" / "sqlite" / "silver.db")) as conn:
+    df.to_sql("jobs", conn, if_exists="replace", index=False)
+
+print(f"{len(df)} lignes importées dans database_building/sqlite/silver.db")

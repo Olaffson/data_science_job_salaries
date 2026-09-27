@@ -1,95 +1,62 @@
 #!/bin/bash
 
-# ce fichier télécharge les données, les nettoie et les enregistre en silver.csv
+# Ce script prépare l'environnement local et les données :
+# téléchargement du jeu de données (bronze.csv), nettoyage (silver.csv) et base SQLite (silver.db)
+
+set -e
+cd "$(dirname "$0")"
 
 # Fonction pour afficher un message INFO
 print_info() {
     echo -e "\e[32mINFO:\e[0m \e[97m$1\e[0m"
 }
 
-
-# Vérifier si kaggle.json se trouve déjà dans ~/.kaggle/
-if [ -f ~/.kaggle/kaggle.json ]; then
-    print_info "Le fichier kaggle.json est présent dans ~/.kaggle/."
-    chmod 600 ~/.kaggle/kaggle.json
-    print_info "Les permissions de kaggle.json ont été ajustées."
-else
-    # Vérifier si kaggle.json se trouve dans Téléchargements
-    if [ -f ~/Téléchargements/kaggle.json ]; then
-        print_info "Déplacement de kaggle.json vers ~/.kaggle/..."
-        mv ~/Téléchargements/kaggle.json ~/.kaggle/
-        chmod 600 ~/.kaggle/kaggle.json
-        print_info "Le fichier kaggle.json a été déplacé avec succès vers ~/.kaggle/"
-    else
-        print_info "Le fichier kaggle.json ne se trouve pas dans le dossier Téléchargements."
-    fi
-fi
-
 # Création de l'environnement virtuel
-print_info "Création de l'environnement virtuel..."
-python3 -m venv venv
+if [ ! -d venv ]; then
+    print_info "Création de l'environnement virtuel..."
+    python3 -m venv venv
+fi
 
 # Activation de l'environnement virtuel
 print_info "Activation de l'environnement virtuel..."
 source venv/bin/activate
 
-# Installation des dépendances à partir du fichier requirements.txt
-print_info "Installation des dépendances à partir du fichier requirements.txt..."
-pip install -r requirements.txt
+# Installation des dépendances (application + notebooks)
+print_info "Installation des dépendances..."
+pip install -r requirements.txt -r model/requirements.txt
 
-# Vérifier si bronze.csv existe déjà
+# Téléchargement du jeu de données s'il n'est pas déjà présent
 if [ ! -f "data/bronze.csv" ]; then
-    # Vérifier si le fichier ZIP n'existe pas avant de le télécharger
-    if [ ! -f "data/latest-data-science-job-salaries-2024.zip" ]; then
-        print_info "Téléchargement du fichier ZIP..."
-        kaggle datasets download -d saurabhbadole/latest-data-science-job-salaries-2024 -p data
-        print_info "Le fichier ZIP a été téléchargé avec succès."
+    # Vérifier si kaggle.json se trouve dans ~/.kaggle/ ou dans Téléchargements
+    mkdir -p ~/.kaggle
+    if [ ! -f ~/.kaggle/kaggle.json ] && [ -f ~/Téléchargements/kaggle.json ]; then
+        print_info "Déplacement de kaggle.json vers ~/.kaggle/..."
+        mv ~/Téléchargements/kaggle.json ~/.kaggle/
     fi
-
-    # Vérifier si le fichier ZIP a été décompressé
-    if [ ! -d "data/DataScience_salaries_2024" ]; then
-        print_info "Décompression du fichier ZIP..."
-        unzip data/latest-data-science-job-salaries-2024.zip -d data
-        print_info "Le fichier ZIP a été décompressé avec succès."
+    if [ ! -f ~/.kaggle/kaggle.json ]; then
+        echo "ERREUR : kaggle.json introuvable (ni dans ~/.kaggle/ ni dans ~/Téléchargements/)." >&2
+        exit 1
     fi
+    chmod 600 ~/.kaggle/kaggle.json
 
-    # Suppression du fichier ZIP si nécessaire
-    if [ -f "data/latest-data-science-job-salaries-2024.zip" ]; then
-        rm data/latest-data-science-job-salaries-2024.zip
-    fi
+    print_info "Téléchargement du jeu de données..."
+    kaggle datasets download -d saurabhbadole/latest-data-science-job-salaries-2024 -p data
+    unzip -o data/latest-data-science-job-salaries-2024.zip -d data
+    rm data/latest-data-science-job-salaries-2024.zip
 
-    # Renommer NY-House-Dataset.csv en bronze.csv
-    print_info "Renommage de DataScience_salaries_2024.csv en bronze.csv..."
+    # Renommer DataScience_salaries_2024.csv en bronze.csv
     mv data/DataScience_salaries_2024.csv data/bronze.csv
-    print_info "DataScience_salaries_2024.csv a été renommé en bronze.csv avec succès."
+    print_info "Le jeu de données a été enregistré dans data/bronze.csv."
 else
-    print_info "Le fichier bronze.csv existe déjà. Aucune action nécessaire."
+    print_info "Le fichier data/bronze.csv existe déjà. Aucun téléchargement nécessaire."
 fi
 
-# # Création de la base de données et de la structure de la table
-# print_info "Création de la base de données et de la structure de la table..."
-# sqlite3 dsjs.db < database_building/create_table.sql
+# Nettoyage des données : bronze.csv -> silver.csv
+print_info "Nettoyage des données (analyse/analyse.ipynb)..."
+jupyter nbconvert --to notebook --execute --stdout analyse/analyse.ipynb > /dev/null
 
-# # Vérification si la création de la table a réussi
-# if [ $? -eq 0 ]; then
-#     print_info "La base de données et la structure de la table ont été créées avec succès."
-# else
-#     print_info "Erreur lors de la création de la base de données ou de la structure de la table."
-#     exit 1
-# fi
+# Création de la base SQLite utilisée par l'application : silver.csv -> silver.db
+print_info "Création de la base SQLite..."
+python database_building/sqlite/bdd.py
 
-# # Importation des données depuis le fichier CSV dans la table
-# print_info "Importation des données depuis le fichier CSV dans la table..."
-# sqlite3 dsjs.db < database_building/import_table.sql 2>/dev/null
-
-# # Vérification si l'importation des données a réussi
-# if [ $? -eq 0 ]; then
-#     print_info "Les données ont été importées avec succès dans la table."
-# else
-#     print_info "Erreur lors de l'importation des données dans la table."
-#     exit 1
-# fi
-
-# # Démarrer l'API FastAPI
-# print_info "Démarrage de l'API FastAPI..."
-# python3 api/main.py --reload
+print_info "Données prêtes. Lancer l'application avec ./run_app.sh"

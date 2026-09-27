@@ -1,48 +1,11 @@
 #!/bin/bash
 
-# ce fichier crée les ressources azure nécessaires pour le projet
+# Ce script crée les ressources Azure du projet (serveur et base PostgreSQL)
+# Variables requises : TF_VAR_db_admin_password et TF_VAR_client_ip
 
-# Fonction pour afficher un message INFO
-print_info() {
-    echo -e "\e[32mINFO:\e[0m \e[97m$1\e[0m"
-}
+set -e
+cd "$(dirname "$0")/terraform"
 
-# Fonction pour l'initialisation Terraform
-terraform_create() {
-    cd terraform
-    terraform init
-    terraform plan
-    terraform apply --auto-approve
-}
-
-# Appel des fonctions
-terraform_create
-
-
-# # Azure SQL Server credentials
-# server="projet-ok-prod-postgres.database.windows.net"
-# database="projet-ok-prod-database"
-# username="adminuser"
-# password="$DB_ADMIN_PASSWORD"
-
-# # Path to your SQL script file
-# sqlScript="/home/utilisateur/Documents/Projets/data_science_job_salaries/database_building/create_table.sql"
-
-# # Connect to Azure SQL Server and execute the SQL script
-# sqlcmd -S $server -d $database -U $username -P $password -i "$sqlScript"
-# if [ $? -eq 0 ]; then
-#     print_info "La table a été créée avec succès."
-# else
-#     print_info "Échec de la création de la table."
-# fi
-
-# # Path to your CSV file
-# csvFile="./data/bronze.csv"
-
-# # Import data
-# bcp dbo.salaries in $csvFile -S $server -d $database -U $username -P $password -q -c -t ','
-# if [ $? -eq 0 ]; then
-#     print_info "Les données ont été importées avec succès."
-# else
-#     print_info "Échec de l'importation des données."
-# fi
+terraform init
+terraform plan
+terraform apply --auto-approve
